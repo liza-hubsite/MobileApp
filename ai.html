@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #sync-toast {
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+            background: var(--text-main); color: white; padding: 10px 20px;
+            border-radius: 30px; font-size: 12px; display: flex; align-items: center;
+            gap: 10px; z-index: 3000; transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        #sync-toast.show { top: 60px; }
+        .spinner { animation: rotate 2s linear infinite; font-size: 14px; color: #4CAF50; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+
+        .chip {
+            background: white;
+            border: 1px solid rgba(32, 25, 60, 0.1);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
+        }
+        .chip:active {
+            background: var(--highlight);
+            color: white;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="app-container">
+    <div id="sync-toast">
+        <i class="fa-solid fa-circle-notch spinner"></i>
+        <span>Syncing to Insights...</span>
+    </div>
+
+    <header class="app-header">
+        <img src="logo.png" class="logo-img" onclick="location.href='home.html'">
+        <div style="display:flex; gap:15px; align-items:center;">
+            <i class="fa-solid fa-trash-can" onclick="resetChat()" style="color:var(--highlight); cursor:pointer; font-size:18px;"></i>
+            <i class="fa-solid fa-cog" onclick="location.href='settings.html'"></i>
+        </div>
+    </header>
+
+    <main class="main-content" id="chat-stage" style="display: flex; flex-direction: column;">
+        <div id="welcome-ui" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+            <div style="background: linear-gradient(135deg, var(--berry), var(--highlight)); width: 60px; height: 60px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: white; font-size: 28px;"></i>
+            </div>
+            <h2 style="margin: 0; font-size: 20px;">How can Elivive help?</h2>
+            <p style="font-size: 14px; opacity: 0.6; margin: 10px 0 25px;">Logged: Day 3 (Menstruation)</p>
+            
+            <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; padding:0 20px;">
+                <div class="chip" onclick="quickAsk('My head is throbbing')">"My head is throbbing"</div>
+                <div class="chip" onclick="quickAsk('Explain my phase')">"Explain my phase"</div>
+                <div class="chip" onclick="quickAsk('I feel so crampy')">"I feel so crampy"</div>
+                <div class="chip" onclick="quickAsk('Food for Day 3')">"Food for Day 3"</div>
+            </div>
+        </div>
+        <div id="chat-messages" style="display: none; flex-direction: column; padding: 15px; gap: 12px;"></div>
+    </main>
+
+    <form id="chat-form" onsubmit="handleChat(); return false;" style="padding: 15px; background: white; border-top: 1px solid #eee; flex-shrink: 0;">
+        <div style="display: flex; gap: 10px; align-items: center; background: #f9f9f9; padding: 5px 15px; border-radius: 25px; border: 1px solid #eee;">
+            <input type="text" id="user-input" placeholder="Type a message..." autocomplete="off" style="flex-grow: 1; border: none; background: transparent; padding: 10px; outline: none; font-size: 16px; color:black;">
+            <button type="submit" id="send-btn" style="background: var(--highlight); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer;">
+                <i class="fa-solid fa-paper-plane" style="font-size: 14px;"></i>
+            </button>
+        </div>
+    </form>
+
+    <footer class="app-footer">
+        <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i>Home</a>
+        <a href="insights.html" class="nav-item"><i class="fa-solid fa-lightbulb"></i>Insights</a>
+        <a href="charts.html" class="nav-item"><i class="fa-solid fa-chart-line"></i>Charts</a>
+        <a href="ai.html" class="nav-item active"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
+    </footer>
+
+    <script>
+        const userInput = document.getElementById('user-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const welcomeUI = document.getElementById('welcome-ui');
+        const chatStage = document.getElementById('chat-stage');
+        const toast = document.getElementById('sync-toast');
+
+        let lastSymptom = null;
+
+        // MULTI-WORD SYMPTOM GROUPS
+        const symptomGroups = [
+            {
+                id: "headache",
+                keywords: ["headache", "migraine", "head pain", "throbbing", "head ache"],
+                response: "I'm sorry about the headache. On Day 3, this is often hormonal. How would you rate the pain from 1-10?"
+            },
+            {
+                id: "cramps",
+                keywords: ["cramps", "cramping", "crampy", "period pain", "abdominal pain", "pelvic"],
+                response: "Cramping is very common on Day 3. Is the pain sharp or more of a dull ache?"
+            },
+            {
+                id: "bloated",
+                keywords: ["bloated", "bloating", "swollen", "fullness", "stomach swell"],
+                response: "Bloating is common as your body sheds. Is it causing significant discomfort today?"
+            },
+            {
+                id: "nausea",
+                keywords: ["nausea", "nauseous", "sick to my stomach", "queasy", "throwing up"],
+                response: "Nausea on Day 3 is often linked to high prostaglandin levels. Do you feel it mostly after eating?"
+            },
+            {
+                id: "moodswings",
+                keywords: ["mood swings", "moody", "irritable", "emotional", "crying", "mood swing"],
+                response: "Hormonal shifts can feel like a rollercoaster. Are the shifts happening suddenly?"
+            },
+            {
+                id: "anxiety",
+                keywords: ["anxiety", "anxious", "panicky", "on edge", "worried", "panic"],
+                response: "Lower progesterone can sometimes lead to 'period anxiety.' How are your energy levels otherwise?"
+            },
+            {
+                id: "tired",
+                keywords: ["tired", "exhausted", "fatigue", "no energy", "sleepy", "lethargic"],
+                response: "Fatigue is common as your body works hard on Day 3. Have you been able to rest much today?"
+            },
+            {
+                id: "cravings",
+                keywords: ["cravings", "hungry", "food", "sugar", "salt", "craving"],
+                response: "Your metabolic needs increase during your period. Are you craving something specific like chocolate or salt?"
+            }
+        ];
+
+        const confirmationResponses = {
+            "headache": "Logged. Estrogen drop headaches respond well to hydration and cool compresses.",
+            "bloated": "Logged. Peppermint tea and light walking can help move things along.",
+            "cramps": "Logged. Heat therapy is your best friend for these Day 3 prostaglandins.",
+            "nausea": "Logged. Small, frequent meals and ginger tea are biologically great for Day 3 nausea.",
+            "cravings": "Logged. Your body likely needs magnesium or iron—try dark chocolate or spinach!",
+            "moodswings": "Logged. It's completely normal for your neurotransmitters to react to the low hormone floor.",
+            "anxiety": "Logged. Deep breathing and magnesium can help stabilize your nervous system right now.",
+            "tired": "Logged. Rest is a biological requirement today—don't be afraid to take it slow."
+        };
+
+        const generalResponses = {
+            "phase": "You are in the Menstrual Phase (Day 3). Your energy is lowest now, and your body is focusing on renewal.",
+            "food": "Focus on iron-rich foods like lentils, steak, or spinach. Warm fluids help with prostaglandin release.",
+            "hello": "Hi Liza! I'm Elivive. I'm tracking your Day 3 data. How can I support you?",
+            "charts": "Your charts show a normal BBT dip for Day 3. Check the 'Charts' tab for the full view!"
+        };
+
+        function showSyncToast(symptomId) {
+            let key = symptomId + "_count";
+            let count = parseInt(localStorage.getItem(key) || "0");
+            localStorage.setItem(key, count + 1);
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.innerHTML = '<i class="fa-solid fa-check" style="color:#4CAF50"></i><span>Insights Updated</span>';
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        toast.innerHTML = '<i class="fa-solid fa-circle-notch spinner"></i><span>Syncing to Insights...</span>';
+                    }, 500);
+                }, 2000);
+            }, 1500);
+        }
+
+        function resetChat() {
+            if(confirm("Clear conversation and logged data?")) {
+                chatMessages.innerHTML = '';
+                chatMessages.style.display = 'none';
+                welcomeUI.style.display = 'flex';
+                lastSymptom = null;
+                const keys = ['headache','tired','bloated','cramps','breasttenderness','nausea','moodswings','anxiety','cravings'];
+                keys.forEach(s => localStorage.removeItem(s + '_count'));
+            }
+        }
+
+        function quickAsk(text) { userInput.value = text; handleChat(); }
+
+        function handleChat() {
+            const text = userInput.value.trim().toLowerCase();
+            if (!text) return;
+
+            welcomeUI.style.display = 'none';
+            chatMessages.style.display = 'flex';
+            appendMessage('user', userInput.value);
+            userInput.value = '';
+
+            const loadingId = "load-" + Date.now();
+            appendMessage('ai', "Elivive is typing...", loadingId);
+            
+            setTimeout(() => {
+                let responseText = "I've noted that for you, Liza. It helps to keep track of these patterns.";
+
+                if (lastSymptom && confirmationResponses[lastSymptom]) {
+                    responseText = confirmationResponses[lastSymptom];
+                    showSyncToast(lastSymptom);
+                    lastSymptom = null; 
+                } else {
+                    let found = false;
+                    for (let group of symptomGroups) {
+                        if (group.keywords.some(k => text.includes(k))) {
+                            responseText = group.response;
+                            lastSymptom = group.id;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        for (let key in generalResponses) {
+                            if (text.includes(key)) {
+                                responseText = generalResponses[key];
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                document.getElementById(loadingId).innerText = responseText;
+                chatStage.scrollTop = chatStage.scrollHeight;
+            }, 800);
+        }
+
+        function appendMessage(sender, text, id = null) {
+            const msg = document.createElement('div');
+            if(id) msg.id = id;
+            msg.style.padding = '12px 16px';
+            msg.style.borderRadius = '18px';
+            msg.style.maxWidth = '85%';
+            msg.style.fontSize = '14px';
+            msg.style.marginBottom = '10px';
+            msg.style.alignSelf = (sender === 'user') ? 'flex-end' : 'flex-start';
+            msg.style.background = (sender === 'user') ? 'var(--highlight)' : '#e9e9eb';
+            msg.style.color = (sender === 'user') ? 'white' : 'var(--text-main)';
+            msg.innerText = text;
+            chatMessages.appendChild(msg);
+            chatStage.scrollTop = chatStage.scrollHeight;
+        }
+    </script>
+</body>
+</html>

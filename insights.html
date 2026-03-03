@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* UNIFIED LAYOUT LOGIC */
+        .full-width-card {
+            width: 92% !important;
+            margin: 12px auto !important;
+            box-sizing: border-box !important;
+            display: flex;
+        }
+
+        /* DASHBOARD SPECIFIC */
+        .dashboard-card {
+            background: white;
+            padding: 20px 10px;
+            border-radius: 24px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .chart-center-column { flex: 0 0 130px; display: flex; justify-content: center; align-items: center; }
+        .chart-container { width: 125px; height: 125px; border-radius: 50%; position: relative; cursor: pointer; }
+        .chart-center-hole {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 65px; height: 65px; background: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; flex-direction: column; pointer-events: none;
+        }
+
+        .legend-column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+        .legend-left { padding-left: 10px; align-items: flex-start; }
+        .legend-right { padding-right: 10px; align-items: flex-end; }
+
+        .legend-item {
+            display: flex; align-items: center; gap: 8px; cursor: pointer; 
+            font-size: 13px; font-weight: 700; transition: all 0.4s ease;
+            padding: 6px 10px; border-radius: 12px; color: var(--text-main);
+        }
+        .legend-item.highlight-pulse { background: #fdfdfd; transform: scale(1.1); color: var(--highlight); }
+        .legend-right .legend-item { flex-direction: row-reverse; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+        /* ACTION PLAN ALIGNMENT */
+        .action-item {
+            background: white;
+            padding: 10px 16px;
+            border-radius: 18px;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            border-left: 3px solid var(--highlight);
+        }
+    </style>
+</head>
+<body class="app-container">
+    
+    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div id="modalIcon" class="icon-box" style="margin: 0 auto 15px; width: 45px; height: 45px;"></div>
+            <h3 id="modalTitle" style="margin: 0 0 10px; font-size: 18px; color: var(--text-main);"></h3>
+            <p id="modalBody" style="font-size: 13px; line-height: 1.6; color: #555; margin: 0;"></p>
+            <button onclick="closeModal()" style="margin-top:20px; width:100%; background:var(--highlight); color:white; border:none; padding:12px; border-radius:15px; font-weight:bold; cursor:pointer;">Got it</button>
+        </div>
+    </div>
+
+    <header class="app-header">
+        <img src="logo.png" class="logo-img" onclick="location.href='home.html'">
+        <i class="fa-solid fa-cog" onclick="location.href='settings.html'" style="color: var(--text-main);"></i>
+    </header>
+
+    <main class="main-content">
+        <div style="padding: 15px 15px 5px; width: 92%; margin: 0 auto;">
+            <h1 style="margin:0; font-size: 22px; color: var(--text-main);">Symptom Insights</h1>
+            <p style="margin:2px 0; opacity:0.6; font-size: 12px; color: var(--text-main);">Weekly Symptom Trends & Insights</p>
+        </div>
+
+        <div class="dashboard-card full-width-card" id="mainDashboard">
+            <div id="legend-left" class="legend-column legend-left"></div>
+            <div class="chart-center-column" id="chartWrapper">
+                <div id="symptomPie" class="chart-container" onclick="handlePieClick(event)">
+                    <div class="chart-center-hole">
+                        <span id="total-logs" style="font-size: 18px; font-weight: 800; color: var(--text-main);">0</span>
+                        <span style="font-size: 8px; opacity: 0.5; text-transform: uppercase; color: var(--text-main);">Logs</span>
+                    </div>
+                </div>
+            </div>
+            <div id="legend-right" class="legend-column legend-right"></div>
+            <div id="emptyMessage" style="display:none; width:100%; text-align:center; font-size:13px; opacity:0.5; color: var(--text-main);">No symptoms logged this week.</div>
+        </div>
+
+        <div class="card full-width-card" style="background: linear-gradient(135deg, #20193C, #3a2e6e); color: white; border:none; flex-direction:column;">
+            <h3 style="margin:0 0 8px; font-size: 15px; color: #dcd6f7;"><i class="fa-solid fa-dna"></i> Inside your body</h3>
+            <p style="font-size: 12px; line-height: 1.5; opacity: 0.9; margin: 0;">
+                On day 3 of your cycle, your uterus is continuing to shed its thick lining. Your uterus assists in the removal this lining by making small muscle contractions, 
+                which can cause cramps or lower back pain. Hormone levels, especially estrogen and progesterone, are still low at this point. Because of this, you may 
+                feel tired, more emotional than usual, or low on energy. At the same time, your brain is already sending signals to the ovaries to begin preparing for the next cycle, and several 
+                tiny sacs in your ovaries, each containing an immature egg, are starting to grow and develop. 
+            </p>
+        </div>
+
+        <div style="width: 92%; margin: 20px auto 5px;"><h3 style="font-size: 11px; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); font-weight:800;">Day 3 Action Plan</h3></div>
+        
+        <div class="action-item full-width-card">
+            <div style="color:var(--highlight); font-size:16px;"><i class="fa-solid fa-spa"></i></div>
+            <div>
+                <h5 style="margin:0; font-size: 13px; color: var(--text-main);">Low-Impact Movement</h5>
+                <p style="margin:2px 0 0; font-size: 11px; opacity: 0.6; color: var(--text-main);">Gentle movement like light yoga, stretching, 
+                    or short walks can help soothe lower back discomfort and release tension. These activities may support flexibility, circulation, 
+                    and relaxation.</p>
+            </div>
+        </div>
+
+        <div class="action-item full-width-card">
+            <div style="color:var(--highlight); font-size:16px;"><i class="fa-solid fa-bowl-food"></i></div>
+            <div>
+                <h5 style="margin:0; font-size: 13px; color: var(--text-main);">Iron-Rich Food</h5>
+                <p style="margin:2px 0 0; font-size: 11px; opacity: 0.6; color: var(--text-main);">Eating iron-rich foods supports healthy red blood cells and energy. 
+                    Good sources include meat, beans, lentils, and leafy greens. Pair with vitamin C foods to improve absorption.</p>
+            </div>
+        </div>
+
+        <div style="height: 30px;"></div>
+    </main>
+
+    <footer class="app-footer">
+        <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i>Home</a>
+        <a href="insights.html" class="nav-item active"><i class="fa-solid fa-lightbulb"></i>Insights</a>
+        <a href="charts.html" class="nav-item"><i class="fa-solid fa-chart-line"></i>Charts</a>
+        <a href="ai.html" class="nav-item"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
+    </footer>
+
+    <script>
+        const symptoms = [
+            { id: 'headache', label: 'Headache', color: '#BC3E2D', icon: 'fa-head-side-virus' },
+            { id: 'tired', label: 'Fatigue', color: '#8F1858', icon: 'fa-bed' },
+            { id: 'cramps', label: 'Cramps', color: '#D25215', icon: 'fa-bolt' },
+            { id: 'bloated', label: 'Bloating', color: '#E5989B', icon: 'fa-wind' },
+            { id: 'nausea', label: 'Nausea', color: '#6D597A', icon: 'fa-frown' },
+            { id: 'moodswings', label: 'Mood', color: '#B56576', icon: 'fa-masks-theater' },
+            { id: 'anxiety', label: 'Anxiety', color: '#355070', icon: 'fa-brain' },
+            { id: 'cravings', label: 'Cravings', color: '#EAAC8B', icon: 'fa-cookie-bite' }
+        ];
+
+        const bioData = {
+            tired: { title: "Why am I so tired?", text: "Hormones at their floor require rest." },
+            headache: { title: "The Estrogen Drop", text: "Estrogen impact on serotonin triggers headaches." },
+            cramps: { title: "Prostaglandins 101", text: "Muscles contracting to clear the lining." },
+            bloated: { title: "Water Retention", text: "Hormonal shifts affect gut muscles." },
+            nausea: { title: "The Gut Connection", text: "Prostaglandins entering the bloodstream." },
+            moodswings: { title: "Neurotransmitter Shifts", text: "Serotonin reacting to low estrogen." },
+            anxiety: { title: "Progesterone Withdrawal", text: "Low progesterone can make you feel 'on edge'." },
+            cravings: { title: "Metabolic Demand", text: "Body seeking quick energy to compensate for effort." }
+        };
+
+        let activeChartSegments = [];
+
+        function updateChart() {
+            const leftL = document.getElementById('legend-left');
+            const rightL = document.getElementById('legend-right');
+            const emptyMsg = document.getElementById('emptyMessage');
+            const chartWrapper = document.getElementById('chartWrapper');
+            
+            let total = 0;
+            activeChartSegments = [];
+            leftL.innerHTML = ''; rightL.innerHTML = '';
+
+            const loggedSymptoms = symptoms.filter(s => {
+                let count = parseInt(localStorage.getItem(s.id + '_count') || "0");
+                if (count > 0) {
+                    total += count;
+                    activeChartSegments.push({ ...s, count });
+                    return true;
+                }
+                return false;
+            });
+
+            if (total === 0) {
+                emptyMsg.style.display = 'block';
+                chartWrapper.style.display = 'none';
+                leftL.style.display = 'none'; rightL.style.display = 'none';
+            } else {
+                emptyMsg.style.display = 'none';
+                chartWrapper.style.display = 'flex';
+                leftL.style.display = 'flex'; rightL.style.display = 'flex';
+
+                loggedSymptoms.forEach((s, index) => {
+                    const itemHTML = `<div id="leg-${s.id}" class="legend-item" onclick="openModal('${s.id}')"><div class="dot" style="background:${s.color}"></div><span>${s.label}</span></div>`;
+                    if (index % 2 === 0) leftL.innerHTML += itemHTML;
+                    else rightL.innerHTML += itemHTML;
+                });
+
+                let currentPercent = 0;
+                let gradientString = activeChartSegments.map(s => {
+                    let start = currentPercent;
+                    let end = start + (s.count / total * 100);
+                    s.startDeg = (start / 100) * 360;
+                    s.endDeg = (end / 100) * 360;
+                    currentPercent = end;
+                    return `${s.color} ${start}% ${end}%`;
+                }).join(', ');
+                document.getElementById('symptomPie').style.background = `conic-gradient(${gradientString})`;
+                document.getElementById('total-logs').innerText = total;
+            }
+        }
+
+        function handlePieClick(event) {
+            const rect = event.target.getBoundingClientRect();
+            const x = event.clientX - rect.left - rect.width / 2;
+            const y = event.clientY - rect.top - rect.height / 2;
+            let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+            if (angle < 0) angle += 360;
+            const matchedSymptom = activeChartSegments.find(s => angle >= s.startDeg && angle <= s.endDeg);
+            if (matchedSymptom) highlightLegendItem(matchedSymptom.id);
+        }
+
+        function highlightLegendItem(id) {
+            document.querySelectorAll('.legend-item').forEach(el => el.classList.remove('highlight-pulse'));
+            const el = document.getElementById('leg-' + id);
+            if (el) {
+                el.classList.add('highlight-pulse');
+                setTimeout(() => el.classList.remove('highlight-pulse'), 2000);
+            }
+        }
+
+        function openModal(type) {
+            const data = bioData[type];
+            const sym = symptoms.find(s => s.id === type);
+            if(!data) return;
+            document.getElementById('modalTitle').innerText = data.title;
+            document.getElementById('modalBody').innerText = data.text;
+            const iconDiv = document.getElementById('modalIcon');
+            iconDiv.innerHTML = `<i class="fa-solid ${sym.icon}"></i>`;
+            iconDiv.style.color = sym.color;
+            iconDiv.style.background = sym.color + "15";
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+        window.onload = updateChart;
+    </script>
+</body>
+</html>

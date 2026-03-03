@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="app-container">
+    <header class="app-header">
+        <img src="logo.png" class="logo-img" onclick="location.href='home.html'">
+        <i class="fa-solid fa-cog" onclick="location.href='settings.html'"></i>
+    </header>
+    <div class="chip-nav">
+        <div class="chip" onclick="updateView('24h')">24h</div>
+        <div class="chip active" onclick="updateView('30d')">30d</div>
+        <div class="chip" onclick="updateView('90d')">90d</div>
+        <div class="chip" onclick="updateView('1y')">1y</div>
+    </div>
+    <main class="main-content">
+        <div class="card">
+            <h3 style="margin-top:0; font-size:14px;">Hormone Levels</h3>
+            <div style="height:220px;"><canvas id="c-hormone"></canvas></div>
+        </div>
+    </main>
+    <footer class="app-footer">
+        <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i>Home</a>
+        <a href="insights.html" class="nav-item"><i class="fa-solid fa-lightbulb"></i>Insights</a>
+        <a href="charts.html" class="nav-item active"><i class="fa-solid fa-chart-line"></i>Charts</a>
+        <a href="ai.html" class="nav-item"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
+    </footer>
+    <script>
+        // Chart logic for 30d/90d (3 peaks)/1y (12 peaks) goes here
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #sync-toast {
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+            background: var(--text-main); color: white; padding: 10px 20px;
+            border-radius: 30px; font-size: 12px; display: flex; align-items: center;
+            gap: 10px; z-index: 3000; transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+        #sync-toast.show { top: 60px; }
+        .spinner { animation: rotate 2s linear infinite; font-size: 14px; color: #4CAF50; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+
+        .log-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px 8px; 
+            margin-top: 10px; 
+        }
+        .log-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .log-item:active { transform: scale(0.9); }
+        
+        .icon-circle { 
+            width: 42px; height: 42px; border-radius: 50%; background: #f9f9f9; 
+            display: flex; align-items: center; justify-content: center; 
+            margin-bottom: 4px; border: 1px solid #eee; 
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+        
+        .log-label { 
+            font-size: 9px; 
+            font-weight: 800; 
+            color: var(--text-main); 
+            text-transform: uppercase; 
+            letter-spacing: 0.4px; 
+        }
+
+        /* Brand Colors for Icons */
+        .ic-red { color: #BC3E2D; }
+        .ic-berry { color: #8F1858; }
+        .ic-orange { color: #D25215; }
+        .ic-teal { color: #0891b2; }
+        .ic-pink { color: #db2777; }
+        .ic-purple { color: #7c3aed; }
+        .ic-blue { color: #2563eb; }
+        .ic-gold { color: #d97706; }
+        .ic-green { color: #6D597A; }
+    </style>
+</head>
+<body class="app-container">
+    <div id="sync-toast">
+        <i class="fa-solid fa-circle-notch spinner"></i>
+        <span>Syncing to Insights...</span>
+    </div>
+
+    <header class="app-header">
+        <img src="logo.png" class="logo-img" alt="Elivive">
+        <i class="fa-solid fa-cog" onclick="location.href='settings.html'" style="cursor:pointer; color: var(--text-main);"></i>
+    </header>
+
+    <main class="main-content">
+        <div style="padding: 20px 15px 10px;">
+            <p id="current-date" style="margin:0; opacity:0.6; font-size: 14px; color: var(--text-main);">Tuesday, March 3</p>
+            <h1 style="margin:5px 0; font-size: 28px; color: var(--text-main);">Hi Liza 👋</h1>
+        </div>
+
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span style="font-weight:700; font-size:15px; color: var(--text-main);">Cycle Day 3</span>
+                <span style="font-size:12px; color:var(--highlight); font-weight:700; background: #fff1f2; padding: 4px 10px; border-radius: 10px;">Menstruation</span>
+            </div>
+            <div style="width:100%; height:10px; background:#f0f0f0; border-radius:10px; overflow:hidden;">
+                <div style="width: 11%; height:100%; background:var(--highlight); border-radius:10px;"></div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 15px;">
+            <h3 style="margin:0; font-size: 11px; color: var(--text-main); font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Quick Log</h3>
+            <div class="log-grid">
+                <div class="log-item" onclick="logSymptom('headache', 'Headache')">
+                    <div class="icon-circle ic-red"><i class="fa-solid fa-head-side-virus"></i></div>
+                    <span class="log-label">Headache</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('tired', 'Fatigue')">
+                    <div class="icon-circle ic-berry"><i class="fa-solid fa-bed"></i></div>
+                    <span class="log-label">Fatigue</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('cramps', 'Cramps')">
+                    <div class="icon-circle ic-orange"><i class="fa-solid fa-bolt"></i></div>
+                    <span class="log-label">Cramps</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('bloated', 'Bloating')">
+                    <div class="icon-circle ic-teal"><i class="fa-solid fa-wind"></i></div>
+                    <span class="log-label">Bloating</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('breasttenderness', 'Breast')">
+                    <div class="icon-circle ic-pink"><i class="fa-solid fa-circle-dot"></i></div>
+                    <span class="log-label">Breast</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('nausea', 'Nausea')">
+                    <div class="icon-circle ic-green"><i class="fa-solid fa-frown"></i></div>
+                    <span class="log-label">Nausea</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('moodswings', 'Mood')">
+                    <div class="icon-circle ic-purple"><i class="fa-solid fa-masks-theater"></i></div>
+                    <span class="log-label">Mood</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('anxiety', 'Anxiety')">
+                    <div class="icon-circle ic-blue"><i class="fa-solid fa-brain"></i></div>
+                    <span class="log-label">Anxiety</span>
+                </div>
+                <div class="log-item" onclick="logSymptom('cravings', 'Cravings')">
+                    <div class="icon-circle ic-gold"><i class="fa-solid fa-cookie-bite"></i></div>
+                    <span class="log-label">Cravings</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="border-left: 5px solid var(--highlight);">
+            <h2 style="margin: 0 0 5px 0; font-size: 16px; color: var(--text-main);">Phase Insight</h2>
+            <p style="font-size: 13px; color: var(--text-main); opacity: 0.8; line-height: 1.5; margin: 0;"> 
+                Your uterus is shedding its lining, hormone levels are low, and you may feel lower 
+                energy or have mild cramps. Based on your previous ovulation history, ovulation is expected in 13 days.</p>
+        </div>
+        
+        <div style="height: 20px;"></div>
+    </main>
+
+    <footer class="app-footer">
+        <a href="home.html" class="nav-item active"><i class="fa-solid fa-house"></i>Home</a>
+        <a href="insights.html" class="nav-item"><i class="fa-solid fa-lightbulb"></i>Insights</a>
+        <a href="charts.html" class="nav-item"><i class="fa-solid fa-chart-line"></i>Charts</a>
+        <a href="ai.html" class="nav-item"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
+    </footer>
+
+    <script>
+        const toast = document.getElementById('sync-toast');
+        function logSymptom(key, label) {
+            let storageKey = key + "_count";
+            let count = parseInt(localStorage.getItem(storageKey) || "0");
+            localStorage.setItem(storageKey, count + 1);
+            toast.classList.add('show');
+            toast.innerHTML = `<i class="fa-solid fa-circle-notch spinner"></i><span>Logging ${label}...</span>`;
+            setTimeout(() => {
+                toast.innerHTML = `<i class="fa-solid fa-check" style="color:#4CAF50"></i><span>Synced to Insights</span>`;
+                setTimeout(() => { toast.classList.remove('show'); }, 1500);
+            }, 800);
+        }
+        const options = { weekday: 'long', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', options);
+    </script>
+</body>
+</html>

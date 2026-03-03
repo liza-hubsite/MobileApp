@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .settings-group-label {
+            margin: 20px 20px 10px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.5;
+            color: var(--text-main);
+        }
+
+        .settings-list {
+            width: 90%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: #eee;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .settings-btn {
+            background: white;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .settings-info { display: flex; align-items: center; gap: 15px; }
+        .settings-info i { width: 20px; color: var(--text-main); opacity: 0.7; font-size: 18px; }
+        .settings-info span { font-size: 14px; font-weight: 600; color: var(--text-main); }
+        
+        .chevron { font-size: 12px; opacity: 0.3; color: var(--text-main); }
+
+        /* Modal Specific Form Styling */
+        .setting-field { text-align: left; margin-bottom: 15px; }
+        .setting-field label { display: block; font-size: 11px; font-weight: 800; opacity: 0.5; margin-bottom: 5px; text-transform: uppercase; }
+        .setting-field input, .setting-field select {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #eee; font-family: inherit; color: var(--text-main);
+        }
+
+        .btn-primary { background: var(--highlight); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; }
+        .btn-outline { background: white; border: 1px solid #eee; padding: 12px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body class="app-container">
+    
+    <div id="modal-profile" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">User Profile</h3>
+            <div class="setting-field">
+                <label>Full Name</label>
+                <input type="text" value="Liza Bennett">
+            </div>
+            <div class="setting-field">
+                <label>Email Address</label>
+                <input type="email" value="liza.b@demoapp.com">
+            </div>
+            <div class="setting-field">
+                <label>Date of Birth</label>
+                <input type="date" value="1996-03-03">
+            </div>
+            <div class="setting-field">
+                <label>Password</label>
+                <input type="password" value="********">
+            </div>
+            <button class="btn-primary" onclick="closeAllModals()">Save Changes</button>
+            <button class="btn-outline" onclick="closeAllModals()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="modal-snapshot" class="modal-overlay">
+        <div class="modal-content">
+            <div class="icon-box" style="margin: 0 auto 15px; background: #e0f2fe; color: #0284c7;">
+                <i class="fa-solid fa-file-export"></i>
+            </div>
+            <h3>Data Snapshot</h3>
+            <p style="font-size: 13px; opacity: 0.7; line-height: 1.5;">Export your hormonal trends and logged symptoms into a clinical PDF to share with your healthcare provider.</p>
+            <button class="btn-primary" onclick="closeAllModals()"><i class="fa-solid fa-download"></i> Download PDF</button>
+            <button class="btn-outline" onclick="closeAllModals()">Close</button>
+        </div>
+    </div>
+
+    <div id="modal-notif" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Notifications</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin: 20px 0; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <span style="font-size: 14px; font-weight: 600;">Morning Check-in</span>
+                <i class="fa-solid fa-toggle-on" style="color: #4CAF50; font-size: 24px;"></i>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <span style="font-size: 14px; font-weight: 600;">Phase Shift Alerts</span>
+                <i class="fa-solid fa-toggle-on" style="color: #4CAF50; font-size: 24px;"></i>
+            </div>
+            <button class="btn-primary" onclick="closeAllModals()">Update Preferences</button>
+        </div>
+    </div>
+
+    <div id="modal-privacy" class="modal-overlay">
+        <div class="modal-content" style="max-height: 70%; overflow-y: auto;">
+            <h3>Privacy Policy</h3>
+            <p style="font-size: 11px; text-align: left; line-height: 1.6; opacity: 0.7;">
+                Your health data is encrypted end-to-end. EliVive, Inc. does not sell your biological data to third parties. 
+                Data logged in the "Symptom Share" and "AI Chat" is stored locally on your device for demo purposes.
+                <br><br>
+                <b>Data Sovereignty:</b> You can use the 'Clear All Data' button at any time to remove all traces of your logs from this application.
+            </p>
+            <button class="btn-primary" onclick="closeAllModals()">I Understand</button>
+        </div>
+    </div>
+
+    <header class="app-header">
+        <i class="fa-solid fa-chevron-left" onclick="location.href='home.html'" style="cursor:pointer;"></i>
+        <h2 style="font-size: 18px; margin: 0; flex-grow: 1; text-align: center; padding-right: 30px;">Settings</h2>
+    </header>
+
+    <main class="main-content">
+        <div class="settings-group-label">Account & Body</div>
+        <div class="settings-list">
+            <div class="settings-btn" onclick="openMod('modal-profile')">
+                <div class="settings-info"><i class="fa-solid fa-user-circle"></i><span>Liza's Profile</span></div>
+                <i class="fa-solid fa-chevron-right chevron"></i>
+            </div>
+            <div class="settings-btn" onclick="openMod('modal-snapshot')">
+                <div class="settings-info"><i class="fa-solid fa-file-invoice"></i><span>User Data Snapshot</span></div>
+                <i class="fa-solid fa-chevron-right chevron"></i>
+            </div>
+        </div>
+
+        <div class="settings-group-label">App Experience</div>
+        <div class="settings-list">
+            <div class="settings-btn" onclick="openMod('modal-notif')">
+                <div class="settings-info"><i class="fa-solid fa-bell"></i><span>Notifications</span></div>
+                <i class="fa-solid fa-chevron-right chevron"></i>
+            </div>
+            <div class="settings-btn" onclick="openMod('modal-privacy')">
+                <div class="settings-info"><i class="fa-solid fa-shield-halved"></i><span>Privacy Policy</span></div>
+                <i class="fa-solid fa-chevron-right chevron"></i>
+            </div>
+        </div>
+
+        <div class="settings-group-label">Demo Control</div>
+        <div class="settings-list" style="background:transparent;">
+            <div class="settings-btn" style="border-radius: 20px; color: var(--highlight); border: 1px solid rgba(188,62,45,0.2);" onclick="localStorage.clear(); location.href='home.html'">
+                <div class="settings-info"><i class="fa-solid fa-trash-can" style="color:var(--highlight)"></i><span style="color:var(--highlight)">Clear All Tracked Data</span></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i>Home</a>
+        <a href="insights.html" class="nav-item"><i class="fa-solid fa-lightbulb"></i>Insights</a>
+        <a href="charts.html" class="nav-item"><i class="fa-solid fa-chart-line"></i>Charts</a>
+        <a href="ai.html" class="nav-item"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
+    </footer>
+
+    <script>
+        function openMod(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeAllModals() {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+        }
+    </script>
+</body>
+</html>
