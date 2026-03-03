@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elivive App</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #20193C; /* Main Text */
+            --accent: #BC3E2D;  /* Highlighting */
+            --warm: #D25215;    /* Orange */
+            --berry: #8F1858;   /* Progesterone */
+            --bg: #F3F3F3;
+            --card: #FFFFFF;
+        }
+        body { margin: 0; font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--primary); padding-bottom: 80px; }
+        .header { padding: 30px 20px 10px; }
+        .header h1 { font-size: 28px; margin: 0; color: var(--primary); }
+        .header p { opacity: 0.6; margin: 5px 0; }
+
+        .card { background: var(--card); margin: 15px; padding: 20px; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .phase-badge { background: #fee2e2; color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
+        
+        .symptom-tag { display: inline-block; padding: 6px 14px; background: white; border: 1px solid #ddd; border-radius: 20px; margin: 4px; font-size: 13px; }
+        .insight-box { background: rgba(188, 62, 45, 0.05); border-left: 4px solid var(--accent); padding: 15px; margin-top: 15px; border-radius: 0 12px 12px 0; font-size: 14px; }
+
+        /* Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); }
+        .nav-item { text-align: center; color: #888; text-decoration: none; font-size: 11px; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; display: block; }
+
+        /* Sections Toggle */
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+
+        @media (min-width: 800px) {
+            .app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 0 20px; }
+            .header { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home" class="page-section active">
+        <div class="header">
+            <p>Tuesday, March 3</p>
+            <h1>Hi Liza 👋</h1>
+            <p>Here's your cycle overview</p>
+        </div>
+
+        <div class="app-grid">
+            <div class="card">
+                <span class="phase-badge">CURRENT PHASE</span>
+                <h2 style="margin:0">Menstruation</h2>
+                <p style="font-size: 14px; opacity: 0.8;">Your body is shedding and renewing</p>
+                
+                <p style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-top: 20px;">You May Feel</p>
+                <div class="symptom-tag">Cramps</div>
+                <div class="symptom-tag">Fatigue</div>
+                <div class="symptom-tag">Headaches</div>
+                
+                <div class="insight-box">
+                    💡 Rest, hydrate, and nourish with iron-rich foods
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Hormone Levels</h3>
+                <canvas id="hormoneChartHome"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="charts" class="page-section">
+        <div class="header">
+            <h1>Hormone Charts</h1>
+            <p>Feb 1, 2026 – Mar 3, 2026</p>
+        </div>
+        <div class="card">
+            <canvas id="hormoneChartLarge"></canvas>
+        </div>
+    </div>
+
+    <div id="ai" class="page-section">
+        <div class="header">
+            <h1>AI Assistant</h1>
+            <p>Your personal hormone health companion</p>
+        </div>
+        <div class="card" style="text-align: center; padding: 40px 20px;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="font-size: 50px; color: var(--berry); margin-bottom: 20px;"></i>
+            <h3>How are you feeling?</h3>
+            <div class="symptom-tag" style="display:block; margin: 10px 0; text-align: left;">"I've been feeling really tired lately"</div>
+            <div class="symptom-tag" style="display:block; margin: 10px 0; text-align: left;">"Why am I having food cravings?"</div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('home', this)"><i class="fa-solid fa-house"></i>Home</div>
+        <div class="nav-item" onclick="showPage('charts', this)"><i class="fa-solid fa-chart-line"></i>Charts</div>
+        <div class="nav-item" onclick="showPage('ai', this)"><i class="fa-solid fa-comment-dots"></i>AI Chat</div>
+        <div class="nav-item"><i class="fa-solid fa-gear"></i>Settings</div>
+    </nav>
+
+    <script>
+        function showPage(id, el) {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        // Chart Logic
+        const ctx = document.getElementById('hormoneChartHome').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan 28', 'Feb 5', 'Feb 12', 'Feb 20', 'Feb 26'],
+                datasets: [{
+                    label: 'Estradiol',
+                    data: [40, 60, 250, 100, 45],
+                    borderColor: '#BC3E2D',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(188, 62, 45, 0.1)'
+                }, {
+                    label: 'Progesterone',
+                    data: [5, 5, 20, 180, 10],
+                    borderColor: '#8F1858',
+                    tension: 0.4
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+        });
+    </script>
+</body>
+</html>
