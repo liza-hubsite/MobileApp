@@ -1,35 +1,235 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        .control-panel { width: 92%; margin: 10px auto; display: flex; flex-direction: column; gap: 12px; }
+        .timeframe-selector { display: flex; justify-content: space-between; background: white; padding: 5px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .tf-btn { flex: 1; padding: 8px 2px; border: none; background: transparent; font-size: 10px; font-weight: 800; color: var(--text-main); opacity: 0.4; cursor: pointer; border-radius: 10px; }
+        .tf-btn.active { background: var(--highlight); color: white; opacity: 1; }
+
+        .chart-main-card { background: white; width: 92%; margin: 10px auto 20px; padding: 25px 10px 15px; border-radius: 28px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; }
+        .chart-overlay-dropdown { position: absolute; top: 15px; left: 15px; z-index: 10; background: #f8f8f8; border: 1px solid #eee; padding: 4px 8px; border-radius: 10px; display: flex; align-items: center; gap: 6px; }
+        .chart-overlay-dropdown select { border: none; background: transparent; font-size: 11px; font-weight: 800; color: var(--text-main); outline: none; cursor: pointer; }
+
+        .section-label { width: 92%; margin: 20px auto 5px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); opacity: 0.5; }
+        canvas { width: 100% !important; height: 350px !important; }
+    </style>
 </head>
 <body class="app-container">
+
     <header class="app-header">
         <img src="logo.png" class="logo-img" onclick="location.href='home.html'">
         <i class="fa-solid fa-cog" onclick="location.href='settings.html'"></i>
     </header>
-    <div class="chip-nav">
-        <div class="chip" onclick="updateView('24h')">24h</div>
-        <div class="chip active" onclick="updateView('30d')">30d</div>
-        <div class="chip" onclick="updateView('90d')">90d</div>
-        <div class="chip" onclick="updateView('1y')">1y</div>
-    </div>
+
     <main class="main-content">
-        <div class="card">
-            <h3 style="margin-top:0; font-size:14px;">Hormone Levels</h3>
-            <div style="height:220px;"><canvas id="c-hormone"></canvas></div>
+        <div style="padding: 15px 15px 5px; width: 92%; margin: 0 auto;">
+            <h1 style="margin:0; font-size: 22px;">Clinical Telemetry</h1>
+            <p style="margin:2px 0; opacity:0.6; font-size: 12px;">Day 3 · Menstrual Phase</p>
         </div>
+
+        <div class="control-panel">
+            <div class="timeframe-selector">
+                <button class="tf-btn" onclick="setTime(24, this)">24H</button>
+                <button class="tf-btn active" onclick="setTime(168, this)">7D</button>
+                <button class="tf-btn" onclick="setTime(720, this)">30D</button>
+                <button class="tf-btn" onclick="setTime(2160, this)">90D</button>
+                <button class="tf-btn" onclick="setTime(8760, this)">1Y</button>
+            </div>
+        </div>
+
+        <div class="section-label">Hormone Analysis</div>
+        <div class="chart-main-card">
+            <div class="chart-overlay-dropdown">
+                <i class="fa-solid fa-filter" style="font-size: 10px; color: var(--highlight);"></i>
+                <select id="hormoneSelect" onchange="updateAllCharts()">
+                    <option value="both">Both</option>
+                    <option value="est">Estradiol</option>
+                    <option value="prog">Progesterone</option>
+                </select>
+            </div>
+            <canvas id="mainChart"></canvas>
+        </div>
+
+        <div class="section-label">Symptom Instances</div>
+        <div class="chart-main-card">
+            <div class="chart-overlay-dropdown">
+                <i class="fa-solid fa-clipboard-check" style="font-size: 10px; color: var(--highlight);"></i>
+                <select id="symptomSelect" onchange="updateAllCharts()">
+                    <option value="all">All Symptoms</option>
+                    <option value="cramps">Cramps</option>
+                    <option value="headache">Headache</option>
+                    <option value="fatigue">Fatigue</option>
+                </select>
+            </div>
+            <canvas id="symptomChart"></canvas>
+        </div>
+
+        <div class="section-label">Basal Body Temperature</div>
+        <div class="chart-main-card">
+            <div class="chart-overlay-dropdown">
+                <i class="fa-solid fa-thermometer-half" style="font-size: 10px; color: var(--highlight);"></i>
+                <select id="tempSelect" onchange="updateAllCharts()">
+                    <option value="f">Fahrenheit (°F)</option>
+                    <option value="c">Celsius (°C)</option>
+                </select>
+            </div>
+            <canvas id="tempChart"></canvas>
+        </div>
+
+        <div class="section-label">Resting Heart Rate</div>
+        <div class="chart-main-card">
+            <div class="chart-overlay-dropdown"><i class="fa-solid fa-heartbeat" style="color:var(--highlight)"></i><span style="font-size:11px; font-weight:800; margin-left:5px;">BPM</span></div>
+            <canvas id="hrChart"></canvas>
+        </div>
+
+        <div class="section-label">Sleep Tracker</div>
+        <div class="chart-main-card">
+            <div class="chart-overlay-dropdown"><i class="fa-solid fa-moon" style="color:var(--highlight)"></i><span style="font-size:11px; font-weight:800; margin-left:5px;">Total Hours</span></div>
+            <canvas id="sleepChart"></canvas>
+        </div>
+
+        <div style="height: 40px;"></div>
     </main>
+
     <footer class="app-footer">
         <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i>Home</a>
         <a href="insights.html" class="nav-item"><i class="fa-solid fa-lightbulb"></i>Insights</a>
         <a href="charts.html" class="nav-item active"><i class="fa-solid fa-chart-line"></i>Charts</a>
         <a href="ai.html" class="nav-item"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
     </footer>
+
     <script>
-        // Chart logic for 30d/90d (3 peaks)/1y (12 peaks) goes here
+        let mainChart = null; 
+        let symptomChart = null;
+        let tempChart = null;
+        let hrChart = null;
+        let sleepChart = null;
+
+        let currentHours = 168;
+        const SEED = 42.0;
+
+        function seededRandom(s) { const x = Math.sin(s) * 10000; return x - Math.floor(x); }
+
+        function generateData(hours) {
+            const data = { prog: [], est: [], temp: [], cramps: [], headache: [], fatigue: [], hr: [], sleep: [], labels: [] };
+            const now = new Date();
+            let currentCycleDay = 3;
+
+            for (let i = hours; i >= 0; i--) {
+                const hourDate = new Date(now.getTime() - i * 60 * 60 * 1000);
+                const totalHoursAgo = hours - i;
+                const cycleId = Math.floor((totalHoursAgo + (currentCycleDay * 24)) / (28 * 24));
+                const vSeed = SEED + cycleId;
+                const varCycleLen = 26 + seededRandom(vSeed) * 6;
+                const cyclePosHours = (currentCycleDay * 24 + totalHoursAgo) % (varCycleLen * 24);
+                const day = cyclePosHours / 24;
+
+                const varEstPeak = 250 + seededRandom(vSeed + 1) * 250;
+                const varProgPeak = 12 + seededRandom(vSeed + 2) * 12;
+                const ovulationDay = varCycleLen - 14 + (seededRandom(vSeed + 3) * 2 - 1);
+
+                // --- HORMONE DATA (UNTOUCHED LOGIC) ---
+                let est, prog;
+                if (day <= 5) {
+                    est = 38 - (day * 4.5); 
+                    prog = 0.9 - (day * 0.2);
+                } else if (day > 5 && day <= ovulationDay) {
+                    est = 20 + Math.pow((day-5)/(ovulationDay-5), 3) * varEstPeak;
+                    prog = 0.2;
+                } else {
+                    const peakDay = ovulationDay + 7;
+                    const distFromPeak = Math.abs(day - peakDay);
+                    prog = 0.5 + Math.max(0, varProgPeak * Math.exp(-(distFromPeak * distFromPeak) / 10));
+                    const lutealDay = day - (ovulationDay + 2);
+                    est = 60 + Math.sin((lutealDay / 8) * Math.PI) * (varEstPeak * 0.35);
+                }
+                est += (seededRandom(i) - 0.5) * 2;
+                prog += (seededRandom(i + 50) - 0.5) * 0.04;
+
+                // --- NEW METRICS DATA ---
+                data.temp.push((day < ovulationDay ? 97.4 : 98.4) + (seededRandom(i+200)-0.5)*0.15);
+                data.cramps.push(day < 4 ? 2 : 0);
+                data.headache.push(seededRandom(i+60) > 0.9 ? 1 : 0);
+                data.fatigue.push(day < 5 ? 1 : 0);
+                data.hr.push(65 + Math.sin(day/5)*8 + seededRandom(i)*5);
+                data.sleep.push(day < 5 ? 8.5 : 7 + seededRandom(i)*1.5);
+
+                data.est.push(Math.max(15, Math.min(600, est)));
+                data.prog.push(Math.max(0.1, Math.min(30, prog)));
+                data.labels.push(hourDate);
+            }
+            return data;
+        }
+
+        function initAllCharts() {
+            const data = generateData(currentHours);
+            const downsample = currentHours > 3000 ? 168 : (currentHours > 720 ? 24 : (currentHours > 24 ? 6 : 1));
+            const fL = data.labels.filter((_, i) => i % downsample === 0);
+            const commonX = { type: 'time', time: { unit: currentHours <= 24 ? 'hour' : 'day', displayFormats: { hour: 'HH:mm', day: 'MMM d' } }, grid: { display: false }, ticks: { font: { size: 9, weight: 'bold' }, color: '#20193C', opacity: 0.5 } };
+
+            // 1. HORMONE CHART (YOUR ORIGINAL BLOCK)
+            const hType = document.getElementById('hormoneSelect').value;
+            const fP = data.prog.filter((_, i) => i % downsample === 0);
+            const fE = data.est.filter((_, i) => i % downsample === 0);
+            if (mainChart) mainChart.destroy();
+            mainChart = new Chart(document.getElementById('mainChart').getContext('2d'), {
+                type: 'line', data: { labels: fL, datasets: [
+                    { data: (hType === 'both' || hType === 'prog') ? fP : [], borderColor: '#8F1858', backgroundColor: 'rgba(143, 24, 88, 0.05)', yAxisID: 'yProg', fill: true, borderWidth: 2, tension: 0.6, pointRadius: 0 },
+                    { data: (hType === 'both' || hType === 'est') ? fE : [], borderColor: '#D25215', backgroundColor: 'rgba(210, 82, 21, 0.05)', yAxisID: 'yEst', fill: true, borderWidth: 2, tension: 0.6, pointRadius: 0 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: commonX, yProg: { position: 'left', display: true, title: { display: (hType !== 'est'), text: 'Prog (ng/mL)', color: '#8F1858', font: { weight: 'bold', size: 10 } }, ticks: { display: (hType !== 'est'), color: '#8F1858', font: { weight: 'bold' } } }, yEst: { position: 'right', display: true, title: { display: (hType !== 'prog'), text: 'Est (pg/mL)', color: '#D25215', font: { weight: 'bold', size: 10 } }, ticks: { display: (hType !== 'prog'), color: '#D25215', font: { weight: 'bold' } }, grid: { drawOnChartArea: false } } }, plugins: { legend: { display: false } } }
+            });
+
+            // 2. SYMPTOM CHART
+            const sType = document.getElementById('symptomSelect').value;
+            if (symptomChart) symptomChart.destroy();
+            symptomChart = new Chart(document.getElementById('symptomChart').getContext('2d'), {
+                type: 'line', data: { labels: fL, datasets: [
+                    { label:'Cramps', data: (sType==='all'||sType==='cramps')?data.cramps.filter((_,i)=>i%downsample===0):[], borderColor:'#BC3E2D', tension:0.4, pointRadius:0 },
+                    { label:'Headache', data: (sType==='all'||sType==='headache')?data.headache.filter((_,i)=>i%downsample===0):[], borderColor:'#D25215', tension:0.4, pointRadius:0 }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: commonX, y: { beginAtZero:true, title:{display:true, text:'Instances'} } }, plugins: { legend: { display: false }, tooltip:{enabled:true} } }
+            });
+
+            // 3. TEMP CHART
+            const tUnit = document.getElementById('tempSelect').value;
+            if (tempChart) tempChart.destroy();
+            tempChart = new Chart(document.getElementById('tempChart').getContext('2d'), {
+                type: 'line', data: { labels: fL, datasets: [{ data: tUnit==='f'?data.temp.filter((_,i)=>i%downsample===0):data.temp.map(v=>(v-32)*5/9).filter((_,i)=>i%downsample===0), borderColor:'#20193C', tension:0.6, pointRadius:0 }]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: commonX, y: { min: tUnit==='f'?96:35, max: tUnit==='f'?100:38 } }, plugins: { legend: { display: false } } }
+            });
+
+            // 4. HEART RATE CHART
+            if (hrChart) hrChart.destroy();
+            hrChart = new Chart(document.getElementById('hrChart').getContext('2d'), {
+                type: 'line', data: { labels: fL, datasets: [{ data: data.hr.filter((_,i)=>i%downsample===0), borderColor:'#BC3E2D', tension:0.6, pointRadius:0 }]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: commonX, y: { title: {display:true, text:'BPM'} } }, plugins: { legend: { display: false } } }
+            });
+
+            // 5. SLEEP CHART
+            if (sleepChart) sleepChart.destroy();
+            sleepChart = new Chart(document.getElementById('sleepChart').getContext('2d'), {
+                type: 'bar', data: { labels: fL, datasets: [{ data: data.sleep.filter((_,i)=>i%downsample===0), backgroundColor:'rgba(143, 24, 88, 0.4)' }]},
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: commonX, y: { min:0, max:12 } }, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function setTime(hours, btn) {
+            currentHours = hours;
+            document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            initAllCharts();
+        }
+
+        function updateAllCharts() { initAllCharts(); }
+        window.onload = initAllCharts;
     </script>
 </body>
 </html>
