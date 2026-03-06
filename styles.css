@@ -167,3 +167,142 @@
 
 /* --- MISC --- */
 .logo-img { height: 24px; width: auto; }
+
+/* FLOATING ACTION BUTTON IN FOOTER */
+/* THE CENTRAL ACTION BUTTON */
+.nav-center-btn {
+    /* Layout & Alignment */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Sizing */
+    width: 48px; 
+    height: 48px;
+    
+    /* Visual Style */
+    background-color: var(--highlight);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    
+    /* Positioning */
+    position: relative;
+    top: 0; /* Ensures it stays in the vertical middle of the footer */
+    
+    /* Shadow & Effects */
+    box-shadow: 0 4px 10px rgba(188, 62, 45, 0.25);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000;
+}
+
+/* Feedback when pressed */
+.nav-center-btn:active {
+    transform: scale(0.92);
+}
+
+/* The Plus Icon inside the button */
+.nav-center-btn i {
+    font-size: 18px;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+/* THE FOOTER CONTAINER (Required for the button to be middle-aligned) */
+/* THE CENTRAL ACTION BUTTON */
+.nav-center-btn {
+    /* Layout & Alignment */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Sizing */
+    width: 48px; 
+    height: 48px;
+    
+    /* Visual Style */
+    background-color: var(--highlight);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    
+    /* Positioning */
+    position: relative;
+    top: 0; /* Ensures it stays in the vertical middle of the footer */
+    
+    /* Shadow & Effects */
+    box-shadow: 0 4px 10px rgba(188, 62, 45, 0.25);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000;
+}
+
+/* Feedback when pressed */
+.nav-center-btn:active {
+    transform: scale(0.92);
+}
+
+/* The Plus Icon inside the button */
+.nav-center-btn i {
+    font-size: 18px;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+/* THE FOOTER CONTAINER (Required for the button to be middle-aligned) */
+.nav-center-btn {
+    /* Layout & Alignment */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Sizing */
+    width: 48px; 
+    height: 48px;
+    
+    /* Visual Style */
+    background-color: var(--highlight);
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    
+    /* Positioning */
+    position: relative;
+    top: 0; /* Ensures it stays in the vertical middle of the footer */
+    
+    /* Shadow & Effects */
+    box-shadow: 0 4px 10px rgba(188, 62, 45, 0.25);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1000;
+}
+
+/* Feedback when pressed */
+.nav-center-btn:active {
+    transform: scale(0.92);
+}
+
+/* The Plus Icon inside the button */
+.nav-center-btn i {
+    font-size: 18px;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+}
+
+/* THE FOOTER CONTAINER (Required for the button to be middle-aligned) */
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around; /* Horizontal centering */
+    align-items: center;           /* Vertical middle-alignment */
+    box-shadow: 0 -2px 15px rgba(0,0,0,0.05);
+    padding: 0 10px;
+    z-index: 999;
+}

@@ -1,493 +1,418 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
     <link rel="stylesheet" href="styles.css">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-
-        /* UNIFIED LAYOUT LOGIC */
-
-        .full-width-card {
-
-            width: 92% !important;
-
-            margin: 12px auto !important;
-
-            box-sizing: border-box !important;
-
-            display: flex;
-
-        }
-
-
-
-        /* DASHBOARD SPECIFIC */
-
         .dashboard-card {
-
-            background: white;
-
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
             padding: 20px 10px;
-
-            border-radius: 24px;
-
+            border-radius: 28px;
+            display: flex;
             align-items: center;
-
             justify-content: space-between;
-
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-
+            border: 1px solid var(--glass-border);
         }
-
-
 
         .chart-center-column { flex: 0 0 130px; display: flex; justify-content: center; align-items: center; }
-
-        .chart-container { width: 125px; height: 125px; border-radius: 50%; position: relative; cursor: pointer; }
-
+        .chart-container { width: 115px; height: 115px; border-radius: 50%; position: relative; cursor: pointer; transition: transform 0.2s; }
         .chart-center-hole {
-
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-
             width: 65px; height: 65px; background: white; border-radius: 50%;
-
             display: flex; align-items: center; justify-content: center; flex-direction: column; pointer-events: none;
-
         }
 
-
-
-        .legend-column { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-
+        .legend-column { flex: 1; display: flex; flex-direction: column; gap: 8px; font-size: 11px; font-weight: 700; max-height: 160px; overflow-y: auto; scrollbar-width: none; }
+        .legend-column::-webkit-scrollbar { display: none; }
         .legend-left { padding-left: 10px; align-items: flex-start; }
-
         .legend-right { padding-right: 10px; align-items: flex-end; }
 
-
-
         .legend-item {
-
-            display: flex; align-items: center; gap: 8px; cursor: pointer;
-
-            font-size: 13px; font-weight: 700; transition: all 0.4s ease;
-
-            padding: 6px 10px; border-radius: 12px; color: var(--text-main);
-
+            display: flex; align-items: center; gap: 6px; cursor: pointer;
+            padding: 4px 8px; border-radius: 10px; color: var(--text-main);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        .legend-item.highlight-pulse { background: #fdfdfd; transform: scale(1.1); color: var(--highlight); }
-
+        .legend-item.highlight-pulse { background: white; transform: scale(1.1); color: var(--highlight); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .legend-right .legend-item { flex-direction: row-reverse; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-        .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-
-
-        /* ACTION PLAN ALIGNMENT */
-
+        .log-list { text-align: left; max-height: 450px; overflow-y: auto; padding-right: 10px; scrollbar-width: none; }
+        .log-list::-webkit-scrollbar { display: none; }
+        .log-section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--highlight); margin: 20px 0 10px; border-bottom: 1px solid rgba(188,62,45,0.15); padding-bottom: 4px; }
+        .log-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; }
+        .log-row span { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        
         .action-item {
-
-            background: white;
-
-            padding: 10px 16px;
-
-            border-radius: 18px;
-
-            align-items: center;
-
-            gap: 12px;
-
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-
             border-left: 3px solid var(--highlight);
-
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
         }
-
     </style>
-
 </head>
-
 <body class="app-container">
-
-   
-
+    
     <div id="modalOverlay" class="modal-overlay" onclick="closeModal()">
-
         <div class="modal-content" onclick="event.stopPropagation()">
-
             <div id="modalIcon" class="icon-box" style="margin: 0 auto 15px; width: 45px; height: 45px;"></div>
-
-            <h3 id="modalTitle" style="margin: 0 0 10px; font-size: 18px; color: var(--text-main);"></h3>
-
-            <p id="modalBody" style="font-size: 13px; line-height: 1.6; color: #555; margin: 0;"></p>
-
-            <button onclick="closeModal()" style="margin-top:20px; width:100%; background:var(--highlight); color:white; border:none; padding:12px; border-radius:15px; font-weight:bold; cursor:pointer;">Got it</button>
-
+            <h3 id="modalTitle" style="margin: 0 0 10px; font-size: 18px;"></h3>
+            <div id="modalBody" style="font-size: 13px; line-height: 1.6; color: #555; margin: 0;"></div>
+            <button onclick="closeModal()" style="margin-top:20px; width:100%; background:var(--highlight); color:white; border:none; padding:12px; border-radius:15px; font-weight:bold;">Got it</button>
         </div>
-
     </div>
 
+    <div id="logOverlay" class="modal-overlay" onclick="closeLog()">
+        <div class="modal-content" style="max-width: 360px; width: 94%; border-radius: 35px;" onclick="event.stopPropagation()">
+            <h3 style="margin:0 0 15px; font-size: 22px;">Symptom Logger</h3>
+            <div class="log-list" id="fullLogMenu">
+                
+                <div class="log-section-title">1. Menstrual & Bleeding</div>
+                <div class="log-row" onclick="quickLog('Period Start')"><span>Period Start/End</span><i class="fa-solid fa-calendar"></i></div>
+                <div class="log-row" onclick="quickLog('Spotting')"><span>Spotting</span><i class="fa-solid fa-droplet"></i></div>
+                <div class="log-row" onclick="quickLog('Light Flow')"><span>Light Flow</span><i class="fa-solid fa-droplet"></i></div>
+                <div class="log-row" onclick="quickLog('Medium Flow')"><span>Medium Flow</span><i class="fa-solid fa-droplet"></i></div>
+                <div class="log-row" onclick="quickLog('Heavy Flow')"><span>Heavy Flow</span><i class="fa-solid fa-droplet"></i></div>
+                <div class="log-row" onclick="quickLog('Clots')"><span>Blood Clots</span><i class="fa-solid fa-circle"></i></div>
+                <div class="log-row" onclick="quickLog('Missed Period')"><span>Missed Period</span><i class="fa-solid fa-xmark"></i></div>
 
+                <div class="log-section-title">2. Pain & Physical</div>
+                <div class="log-row" onclick="quickLog('Cramps')"><span>Cramps</span><i class="fa-solid fa-bolt"></i></div>
+                <div class="log-row" onclick="quickLog('Back Pain')"><span>Lower Back Pain</span><i class="fa-solid fa-couch"></i></div>
+                <div class="log-row" onclick="quickLog('Breast Tenderness')"><span>Breast Tenderness</span><i class="fa-solid fa-circle-dot"></i></div>
+                <div class="log-row" onclick="quickLog('Headache')"><span>Headache/Migraine</span><i class="fa-solid fa-head-side-virus"></i></div>
+                <div class="log-row" onclick="quickLog('Bloating')"><span>Bloating</span><i class="fa-solid fa-wind"></i></div>
+                <div class="log-row" onclick="quickLog('Joint Pain')"><span>Joint/Muscle Pain</span><i class="fa-solid fa-person-walking"></i></div>
+
+                <div class="log-section-title">3. Vaginal & Reproductive</div>
+                <div class="log-row" onclick="quickLog('Cervical Mucus')"><span>Cervical Mucus</span><i class="fa-solid fa-water"></i></div>
+                <div class="log-row" onclick="quickLog('Dryness')"><span>Vaginal Dryness</span><i class="fa-solid fa-sun"></i></div>
+
+                <div class="log-section-title">4. Mood & Emotional</div>
+                <div class="log-row" onclick="quickLog('Mood Swings')"><span>Mood Swings</span><i class="fa-solid fa-masks-theater"></i></div>
+                <div class="log-row" onclick="quickLog('Anxiety')"><span>Anxiety</span><i class="fa-solid fa-brain"></i></div>
+                <div class="log-row" onclick="quickLog('Irritability')"><span>Irritability</span><i class="fa-solid fa-fire"></i></div>
+
+                <div class="log-section-title">5. Energy & Cognitive</div>
+                <div class="log-row" onclick="quickLog('Fatigue')"><span>Fatigue</span><i class="fa-solid fa-battery-empty"></i></div>
+                <div class="log-row" onclick="quickLog('Brain Fog')"><span>Brain Fog</span><i class="fa-solid fa-cloud"></i></div>
+
+                <div class="log-section-title">6. Digestive</div>
+                <div class="log-row" onclick="quickLog('Nausea')"><span>Nausea</span><i class="fa-solid fa-face-frown"></i></div>
+                <div class="log-row" onclick="quickLog('Cravings')"><span>Food Cravings</span><i class="fa-solid fa-cookie"></i></div>
+
+                <div class="log-section-title">Custom Entries</div>
+                <div id="customList"></div>
+                <div style="display:flex; gap:8px; margin-top:15px; padding-bottom:30px;">
+                    <input type="text" id="customInput" style="flex:1; border:1px solid #ddd; border-radius:12px; padding:10px;" placeholder="Add other...">
+                    <button onclick="addCustomSymptom()" style="background:var(--highlight); color:white; border:none; padding:10px 15px; border-radius:12px;"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            <button onclick="closeLog()" style="margin-top:15px; width:100%; border:1px solid #ddd; background:none; padding:15px; border-radius:20px; font-weight:bold;">Close</button>
+        </div>
+    </div>
 
     <header class="app-header">
-
         <img src="logo.png" class="logo-img" onclick="location.href='home.html'">
-
-        <i class="fa-solid fa-cog" onclick="location.href='settings.html'" style="color: var(--text-main);"></i>
-
+        <i class="fa-solid fa-cog" onclick="location.href='settings.html'"></i>
     </header>
 
-
-
     <main class="main-content">
-
-        <div style="padding: 15px 15px 5px; width: 92%; margin: 0 auto;">
-
-            <h1 style="margin:0; font-size: 22px; color: var(--text-main);">Symptom Insights</h1>
-
-            <p style="margin:2px 0; opacity:0.6; font-size: 12px; color: var(--text-main);">Weekly Symptom Trends & Insights</p>
-
+        <div style="padding: 15px 20px 5px;">
+            <h1 style="margin:0; font-size: 22px;">Symptom Insights</h1>
+            <p style="margin:2px 0; opacity:0.6; font-size: 12px;">Weekly Symptom Trends</p>
         </div>
 
-
-
-        <div class="dashboard-card full-width-card" id="mainDashboard">
-
+        <div class="dashboard-card card" style="width: 92%; margin: 12px auto !important;">
             <div id="legend-left" class="legend-column legend-left"></div>
-
-            <div class="chart-center-column" id="chartWrapper">
-
+            <div class="chart-center-column">
                 <div id="symptomPie" class="chart-container" onclick="handlePieClick(event)">
-
                     <div class="chart-center-hole">
-
-                        <span id="total-logs" style="font-size: 18px; font-weight: 800; color: var(--text-main);">0</span>
-
-                        <span style="font-size: 8px; opacity: 0.5; text-transform: uppercase; color: var(--text-main);">Logs</span>
-
+                        <span id="total-logs" style="font-size: 18px; font-weight: 800;">0</span>
+                        <span style="font-size: 8px; opacity: 0.5; text-transform: uppercase;">Logs</span>
                     </div>
-
                 </div>
-
             </div>
-
             <div id="legend-right" class="legend-column legend-right"></div>
-
-            <div id="emptyMessage" style="display:none; width:100%; text-align:center; font-size:13px; opacity:0.5; color: var(--text-main);">No symptoms logged this week.</div>
-
+            <div id="emptyMessage" style="display:none; width:100%; text-align:center; font-size:13px; opacity:0.5;">No logs recorded.</div>
         </div>
 
-
-
-        <div class="card full-width-card" style="background: linear-gradient(135deg, #20193C, #3a2e6e); color: white; border:none; flex-direction:column;">
-
+        <div class="card" style="background: linear-gradient(135deg, #20193C, #3a2e6e); color: white; border:none; flex-direction:column; width: 92%; margin: 12px auto !important;">
             <h3 style="margin:0 0 8px; font-size: 15px; color: #dcd6f7;"><i class="fa-solid fa-dna"></i> Inside your body</h3>
-
-            <p style="font-size: 12px; line-height: 1.5; opacity: 0.9; margin: 0;">
-
-                On day 3 of your cycle, your uterus is continuing to shed its thick lining. Your uterus assists in the removal this lining by making small muscle contractions,
-
-                which can cause cramps or lower back pain. Hormone levels, especially estrogen and progesterone, are still low at this point. Because of this, you may
-
-                feel tired, more emotional than usual, or low on energy. At the same time, your brain is already sending signals to the ovaries to begin preparing for the next cycle, and several
-
-                tiny sacs in your ovaries, each containing an immature egg, are starting to grow and develop.
-
-            </p>
-
+            <p style="font-size: 12px; line-height: 1.5; opacity: 0.9; margin: 0;">Day 3 is still part of the menstrual phase. The uterus is shedding its lining, hormone levels are low, and 
+                you may feel lower energy or have mild cramps. At the same time, your body is already preparing for the next cycle by starting to mature new eggs in the ovaries. Based on your 
+                previous ovulation history, ovulation is expected in 11 days.</p>
         </div>
 
-
-
-        <div style="width: 92%; margin: 20px auto 5px;"><h3 style="font-size: 11px; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); font-weight:800;">Day 3 Action Plan</h3></div>
-
-       
-
-        <div class="action-item full-width-card">
-
-            <div style="color:var(--highlight); font-size:16px;"><i class="fa-solid fa-spa"></i></div>
-
+        <div style="width: 90%; margin: 20px auto 5px;"><h3 style="font-size: 11px; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; font-weight:800;">Day 3 Action Plan</h3></div>
+        
+        <div class="action-item card" style="width: 92%; margin: 8px auto !important;">
+            <i class="fa-solid fa-spa" style="color:var(--highlight); margin-top: 2px;"></i>
             <div>
-
-                <h5 style="margin:0; font-size: 13px; color: var(--text-main);">Low-Impact Movement</h5>
-
-                <p style="margin:2px 0 0; font-size: 11px; opacity: 0.6; color: var(--text-main);">Gentle movement like light yoga, stretching,
-
-                    or short walks can help soothe lower back discomfort and release tension. These activities may support flexibility, circulation,
-
-                    and relaxation.</p>
-
+                <h5 style="margin:0; font-size: 13px;">Low-Impact Movement</h5>
+                <p style="font-size: 11px; opacity: 0.6; margin: 4px 0 0;">Gentle movement like light yoga, stretching, or short walks can help soothe lower back discomfort and release tension. 
+                    These activities may support flexibility, circulation, and relaxation.</p>
             </div>
-
         </div>
 
-
-
-        <div class="action-item full-width-card">
-
-            <div style="color:var(--highlight); font-size:16px;"><i class="fa-solid fa-bowl-food"></i></div>
-
+        <div class="action-item card" style="width: 92%; margin: 8px auto !important;">
+            <i class="fa-solid fa-bowl-food" style="color:var(--highlight); margin-top: 2px;"></i>
             <div>
-
-                <h5 style="margin:0; font-size: 13px; color: var(--text-main);">Iron-Rich Food</h5>
-
-                <p style="margin:2px 0 0; font-size: 11px; opacity: 0.6; color: var(--text-main);">Eating iron-rich foods supports healthy red blood cells and energy.
-
-                    Good sources include meat, beans, lentils, and leafy greens. Pair with vitamin C foods to improve absorption.</p>
-
+                <h5 style="margin:0; font-size: 13px;">Iron-Rich Nutrition</h5>
+                <p style="font-size: 11px; opacity: 0.6; margin: 4px 0 0;">Eating iron-rich foods supports healthy red blood cells and energy. Good sources include meat, beans, lentils, and leafy greens. 
+                    Pair with vitamin C foods to improve absorption.</p>
             </div>
-
         </div>
 
-
-
-        <div style="height: 30px;"></div>
-
+        <div style="padding: 20px 0; text-align: center;">
+            <button onclick="openLogMenu()" class="glass-card" style="width: 90%; background: white; color: var(--highlight); border: 2px solid var(--highlight); padding: 15px; font-weight: 800; border-radius: 20px; cursor: pointer;">
+                <i class="fa-solid fa-plus-circle"></i> Log Symptoms
+            </button>
+        </div>
     </main>
 
-
-
     <footer class="app-footer">
-
         <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i>Home</a>
-
-        <a href="insights.html" class="nav-item active"><i class="fa-solid fa-lightbulb"></i>Insights</a>
-
+        <a href="insights.html" class="nav-item"><i class="fa-solid fa-lightbulb"></i>Insights</a>
+        
+        <div class="nav-center-btn" onclick="openGlobalLog()">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+        
         <a href="charts.html" class="nav-item"><i class="fa-solid fa-chart-line"></i>Charts</a>
-
         <a href="ai.html" class="nav-item"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
-
     </footer>
 
-
-
     <script>
-
-        const symptoms = [
-
-            { id: 'headache', label: 'Headache', color: '#BC3E2D', icon: 'fa-head-side-virus' },
-
-            { id: 'tired', label: 'Fatigue', color: '#8F1858', icon: 'fa-bed' },
-
-            { id: 'cramps', label: 'Cramps', color: '#D25215', icon: 'fa-bolt' },
-
-            { id: 'bloated', label: 'Bloating', color: '#E5989B', icon: 'fa-wind' },
-
-            { id: 'nausea', label: 'Nausea', color: '#6D597A', icon: 'fa-frown' },
-
-            { id: 'moodswings', label: 'Mood', color: '#B56576', icon: 'fa-masks-theater' },
-
-            { id: 'anxiety', label: 'Anxiety', color: '#355070', icon: 'fa-brain' },
-
-            { id: 'cravings', label: 'Cravings', color: '#EAAC8B', icon: 'fa-cookie-bite' }
-
-        ];
-
-
+        const brandPalette = ['rgba(188, 62, 45, ', 'rgba(143, 24, 88, ', 'rgba(210, 82, 21, ', 'rgba(32, 25, 60, '];
 
         const bioData = {
-
-            tired: { title: "Why am I so tired?", text: "Hormones at their floor require rest." },
-
-            headache: { title: "The Estrogen Drop", text: "Estrogen impact on serotonin triggers headaches." },
-
-            cramps: { title: "Prostaglandins 101", text: "Muscles contracting to clear the lining." },
-
-            bloated: { title: "Water Retention", text: "Hormonal shifts affect gut muscles." },
-
-            nausea: { title: "The Gut Connection", text: "Prostaglandins entering the bloodstream." },
-
-            moodswings: { title: "Neurotransmitter Shifts", text: "Serotonin reacting to low estrogen." },
-
-            anxiety: { title: "Progesterone Withdrawal", text: "Low progesterone can make you feel 'on edge'." },
-
-            cravings: { title: "Metabolic Demand", text: "Body seeking quick energy to compensate for effort." }
-
+            'Fatigue': { title: "Fatigue Spike", text: "Hormone withdrawal is complete on Day 3, lowering your metabolic energy floor." },
+            'Headache': { title: "Estrogen Impact", text: "Low estrogen levels can affect serotonin, leading to menstrual migraines." },
+            'Cramps': { title: "Uterine Activity", text: "Prostaglandins are peaking today to help the uterus clear its lining." },
+            'Bloating': { title: "Water Retention", text: "Prostaglandin shifts can affect gut motility and fluid balance." },
+            'Back Pain': { title: "Referred Pain", text: "Uterine contractions can radiate to the lower back muscles during peak shedding." },
+            'Light Flow': { title: "Standard Flow", text: "A light flow on Day 3 is common as the uterine lining concludes its shedding." },
+            'Medium Flow': { title: "Standard Flow", text: "Steady flow indicates your body is still efficiently clearing the endometrial lining." },
+            'Heavy Flow': { title: "Standard Flow", text: "Heavy flow on Day 3 is within the normal range for many users." },
+            'Period Start': { title: "Cycle Baseline", text: "Logging your start date helps Elivive calibrate hormone predictions." },
+            'Spotting': { title: "Expected Flow", text: "Spotting on Day 3 is common as the heavy bleeding phase begins to taper off." }
         };
 
+        const symptomDisplayMap = {
+            'Period Start': 'Period Start/End',
+            'Back Pain': 'Lower Back Pain',
+            'Headache': 'Headache/Migraine',
+            'Joint Pain': 'Joint/Muscle Pain',
+            'Cravings': 'Food Cravings'
+        };
 
+        let activeSegments = [];
 
-        let activeChartSegments = [];
+        function escapeForOnclick(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        }
 
-
+        function safeLegendId(str) {
+            return str.replace(/\s+/g, '').replace(/[^\w-]/g, '');
+        }
 
         function updateChart() {
-
             const leftL = document.getElementById('legend-left');
-
             const rightL = document.getElementById('legend-right');
-
+            const totalDisplay = document.getElementById('total-logs');
             const emptyMsg = document.getElementById('emptyMessage');
-
-            const chartWrapper = document.getElementById('chartWrapper');
-
-           
-
+            const pie = document.getElementById('symptomPie');
+            
             let total = 0;
+            activeSegments = [];
+            leftL.innerHTML = '';
+            rightL.innerHTML = '';
 
-            activeChartSegments = [];
+            const allKeys = Object.keys(localStorage);
+            const items = [];
 
-            leftL.innerHTML = ''; rightL.innerHTML = '';
-
-
-
-            const loggedSymptoms = symptoms.filter(s => {
-
-                let count = parseInt(localStorage.getItem(s.id + '_count') || "0");
-
-                if (count > 0) {
-
-                    total += count;
-
-                    activeChartSegments.push({ ...s, count });
-
-                    return true;
-
+            allKeys.forEach(key => {
+                if (key.endsWith('_count')) {
+                    const count = parseInt(localStorage.getItem(key) || "0", 10);
+                    if (count > 0) {
+                        const rawId = key.replace('_count', '');
+                        items.push({
+                            id: rawId,
+                            label: symptomDisplayMap[rawId] || rawId,
+                            count: count
+                        });
+                        total += count;
+                    }
                 }
-
-                return false;
-
             });
 
-
-
             if (total === 0) {
-
                 emptyMsg.style.display = 'block';
-
-                chartWrapper.style.display = 'none';
-
-                leftL.style.display = 'none'; rightL.style.display = 'none';
-
-            } else {
-
-                emptyMsg.style.display = 'none';
-
-                chartWrapper.style.display = 'flex';
-
-                leftL.style.display = 'flex'; rightL.style.display = 'flex';
-
-
-
-                loggedSymptoms.forEach((s, index) => {
-
-                    const itemHTML = `<div id="leg-${s.id}" class="legend-item" onclick="openModal('${s.id}')"><div class="dot" style="background:${s.color}"></div><span>${s.label}</span></div>`;
-
-                    if (index % 2 === 0) leftL.innerHTML += itemHTML;
-
-                    else rightL.innerHTML += itemHTML;
-
-                });
-
-
-
-                let currentPercent = 0;
-
-                let gradientString = activeChartSegments.map(s => {
-
-                    let start = currentPercent;
-
-                    let end = start + (s.count / total * 100);
-
-                    s.startDeg = (start / 100) * 360;
-
-                    s.endDeg = (end / 100) * 360;
-
-                    currentPercent = end;
-
-                    return `${s.color} ${start}% ${end}%`;
-
-                }).join(', ');
-
-                document.getElementById('symptomPie').style.background = `conic-gradient(${gradientString})`;
-
-                document.getElementById('total-logs').innerText = total;
-
+                pie.style.background = "#eee";
+                totalDisplay.innerText = "0";
+                return;
             }
 
+            emptyMsg.style.display = 'none';
+            let current = 0;
+
+            const grad = items.map((s, idx) => {
+                const start = current;
+                const end = start + (s.count / total * 100);
+                const colorBase = brandPalette[idx % brandPalette.length];
+                const opacity = 1 - ((idx % 3) * 0.25);
+                const finalColor = colorBase + opacity + ')';
+                s.color = finalColor;
+                s.startDeg = (start / 100) * 360;
+                s.endDeg = (end / 100) * 360;
+                current = end;
+                activeSegments.push(s);
+                return `${finalColor} ${start}% ${end}%`;
+            }).join(', ');
+
+            pie.style.background = `conic-gradient(${grad})`;
+            totalDisplay.innerText = total;
+
+            activeSegments.forEach((s, idx) => {
+                const html = `<div id="leg-${safeLegendId(s.id)}" class="legend-item" onclick="openModal('${escapeForOnclick(s.id)}')"><div class="dot" style="background:${s.color}"></div><span>${s.label}</span></div>`;
+                if (idx % 2 === 0) {
+                    leftL.innerHTML += html;
+                } else {
+                    rightL.innerHTML += html;
+                }
+            });
         }
-
-
 
         function handlePieClick(event) {
-
-            const rect = event.target.getBoundingClientRect();
-
+            const rect = event.currentTarget.getBoundingClientRect();
             const x = event.clientX - rect.left - rect.width / 2;
-
             const y = event.clientY - rect.top - rect.height / 2;
-
             let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
-
             if (angle < 0) angle += 360;
 
-            const matchedSymptom = activeChartSegments.find(s => angle >= s.startDeg && angle <= s.endDeg);
-
-            if (matchedSymptom) highlightLegendItem(matchedSymptom.id);
-
-        }
-
-
-
-        function highlightLegendItem(id) {
-
-            document.querySelectorAll('.legend-item').forEach(el => el.classList.remove('highlight-pulse'));
-
-            const el = document.getElementById('leg-' + id);
-
-            if (el) {
-
-                el.classList.add('highlight-pulse');
-
-                setTimeout(() => el.classList.remove('highlight-pulse'), 2000);
-
+            const matched = activeSegments.find(s => angle >= s.startDeg && angle <= s.endDeg);
+            if (matched) {
+                document.querySelectorAll('.legend-item').forEach(el => el.classList.remove('highlight-pulse'));
+                const el = document.getElementById('leg-' + safeLegendId(matched.id));
+                if (el) {
+                    el.classList.add('highlight-pulse');
+                    setTimeout(() => el.classList.remove('highlight-pulse'), 2000);
+                }
             }
-
         }
-
-
 
         function openModal(type) {
-
-            const data = bioData[type];
-
-            const sym = symptoms.find(s => s.id === type);
-
-            if(!data) return;
-
-            document.getElementById('modalTitle').innerText = data.title;
-
-            document.getElementById('modalBody').innerText = data.text;
+            const clinicalInfo = bioData[type] || { 
+                title: "Uncommon Symptom", 
+                text: "This is an unexpected symptom for where you are in your cycle. I will keep an eye on this to see if it starts to become a pattern." 
+            };
+            const sym = activeSegments.find(s => s.id === type) || { color: '#BC3E2D' };
+            
+            document.getElementById('modalTitle').innerText = clinicalInfo.title;
+            document.getElementById('modalBody').innerText = clinicalInfo.text;
 
             const iconDiv = document.getElementById('modalIcon');
-
-            iconDiv.innerHTML = `<i class="fa-solid ${sym.icon}"></i>`;
-
+            iconDiv.innerHTML = `<i class="fa-solid fa-dna"></i>`;
             iconDiv.style.color = sym.color;
+            iconDiv.style.background = 'rgba(188, 62, 45, 0.1)';
 
-            iconDiv.style.background = sym.color + "15";
+            if (typeof sym.color === 'string' && sym.color.startsWith('rgba')) {
+                const rgbaMatch = sym.color.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([^)]+)\)/);
+                if (rgbaMatch) {
+                    iconDiv.style.background = `rgba(${rgbaMatch[1]}, ${rgbaMatch[2]}, ${rgbaMatch[3]}, 0.1)`;
+                }
+            }
 
             document.getElementById('modalOverlay').style.display = 'flex';
-
         }
 
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
 
+        function openLogMenu() {
+            renderCustomList();
+            document.getElementById('logOverlay').style.display = 'flex';
+        }
 
-        function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+        function closeLog() {
+            document.getElementById('logOverlay').style.display = 'none';
+        }
 
-        window.onload = updateChart;
+        function quickLog(name) {
+            let count = parseInt(localStorage.getItem(name + '_count') || "0", 10);
+            localStorage.setItem(name + '_count', count + 1);
 
+            updateChart();
+
+            const rows = document.querySelectorAll('.log-row');
+            let targetIcon = null;
+            let originalClass = "";
+
+            rows.forEach(row => {
+                const onclickAttr = row.getAttribute('onclick') || '';
+                if (
+                    onclickAttr.includes(`quickLog('${name.replace(/'/g, "\\'")}')`) ||
+                    onclickAttr.includes(`quickLog("${name}")`)
+                ) {
+                    targetIcon = row.querySelector('i');
+                    if (targetIcon) originalClass = targetIcon.className;
+                }
+            });
+
+            if (!targetIcon) return;
+
+            targetIcon.className = "fa-solid fa-circle-notch fa-spinner";
+
+            setTimeout(() => {
+                targetIcon.className = "fa-solid fa-check";
+                targetIcon.style.color = "#4CAF50";
+
+                setTimeout(() => {
+                    targetIcon.className = originalClass;
+                    targetIcon.style.color = "";
+                }, 1500);
+            }, 800);
+        }
+
+        function addCustomSymptom() {
+            const input = document.getElementById('customInput');
+            const val = input.value.trim();
+            if (!val) return;
+
+            let custom = JSON.parse(localStorage.getItem('customSymptoms') || "[]");
+
+            if (!custom.includes(val)) {
+                custom.push(val);
+                localStorage.setItem('customSymptoms', JSON.stringify(custom));
+                renderCustomList();
+            }
+
+            quickLog(val);
+            input.value = '';
+        }
+
+        function renderCustomList() {
+            const custom = JSON.parse(localStorage.getItem('customSymptoms') || "[]");
+            document.getElementById('customList').innerHTML = custom.map(k => {
+                return `<div class="log-row" onclick="quickLog('${escapeForOnclick(k)}')"><span>${k}</span><i class="fa-solid fa-plus ic-green"></i></div>`;
+            }).join('');
+        }
+
+        function openGlobalLog() {
+            openLogMenu();
+        }
+
+        window.onload = function() {
+            updateChart();
+            if (localStorage.getItem('triggerLogMenu') === 'true') {
+                localStorage.removeItem('triggerLogMenu');
+                openLogMenu();
+            }
+        };
     </script>
-
 </body>
-
 </html>

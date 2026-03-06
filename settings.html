@@ -124,8 +124,8 @@
     </div>
 
     <header class="app-header">
-        <i class="fa-solid fa-chevron-left" onclick="location.href='home.html'" style="cursor:pointer;"></i>
-        <h2 style="font-size: 18px; margin: 0; flex-grow: 1; text-align: center; padding-right: 30px;">Settings</h2>
+        <img src="logo.png" class="logo-img" onclick="location.href='home.html'">
+        <i class="fa-solid fa-cog" onclick="location.href='settings.html'"></i>
     </header>
 
     <main class="main-content">
@@ -164,11 +164,26 @@
     <footer class="app-footer">
         <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i>Home</a>
         <a href="insights.html" class="nav-item"><i class="fa-solid fa-lightbulb"></i>Insights</a>
+        
+        <div class="nav-center-btn" onclick="openGlobalLog()">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+        
         <a href="charts.html" class="nav-item"><i class="fa-solid fa-chart-line"></i>Charts</a>
         <a href="ai.html" class="nav-item"><i class="fa-solid fa-wand-magic-sparkles"></i>AI Chat</a>
     </footer>
 
     <script>
+        function openGlobalLog() {
+    // If we are already on the insights page, just open the menu
+    if (window.location.pathname.includes('insights.html')) {
+        openLogMenu();
+    } else {
+        // Otherwise, go to insights and tell it to open the menu on arrival
+        localStorage.setItem('triggerLogMenu', 'true');
+        window.location.href = 'insights.html';
+    }
+}
         function openMod(id) { document.getElementById(id).style.display = 'flex'; }
         function closeAllModals() {
             document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
